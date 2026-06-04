@@ -1,0 +1,13 @@
+item,category,anchor_mileage,interval_miles,due_mileage,priority,status,notes
+Engine oil + filter (post-rebuild),engine,150181,3000,153181,Critical,active,Full oil+filter at +3k per mechanic
+Break-in review window end,engine,150181,5000,155181,High,active,Keep RPM guidance until this point
+Tire rotation,chassis,125704,30000,155704,Medium,active,Track wear and rotate near due point
+Brake fluid flush,fluid,106400,30000,136400,Medium,monitor-first,Keep on list even if currently stable
+Clutch fluid flush,fluid,106400,30000,136400,Medium,monitor-first,Keep on list even if currently stable
+Power steering fluid flush,fluid,112506,30000,142506,Low,monitor-first,Keep on list even if currently stable
+Wheel alignment,chassis,110833,30000,140833,Low,monitor-first,Keep on list even if currently stable
+Spark plugs (reset),engine,150050,60000,210050,Medium,active,Treat as standard interval from 150050
+Coolant service (reset),engine,150050,75000,225050,Medium,active,Treat as standard interval from 150050
+Battery (time-based),electrical,,,,Low,active,Next around 2029-03
+Smog check (time-based),compliance,,,,High,active,Coming up; verify local due date window
+Strut/suspension health,condition,,,,Low,active,Condition-based; push-test currently okay

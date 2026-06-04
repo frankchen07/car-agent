@@ -1,0 +1,21 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Build artifacts
+car_agent.egg-info/
+
+# Raw source files (PDFs, receipts — large/personal, rebuilt from originals)
+knowledge/sources/manuals/
+knowledge/sources/ownership/
+knowledge/sources/placeholders/
+knowledge/sources/receipts/
+
+# Knowledge pipeline output (large, rebuilt by pipeline)
+knowledge/output/
+
+# Postgres data
+postgres-data/
