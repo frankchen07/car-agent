@@ -1,9 +1,15 @@
 """Service history and maintenance plan tools."""
+import csv
 from datetime import date
+from pathlib import Path
 
 from src.db import get_conn
 
 VEHICLE_ID = 1
+CHECKLIST_CSV = (
+    Path(__file__).resolve().parents[2]
+    / "knowledge" / "sources" / "canonical" / "subaru-impreza-wrx-2003-maintenance-checklist.csv"
+)
 
 
 def get_service_history(limit: int = 20, keyword: str | None = None) -> str:
@@ -88,6 +94,32 @@ def get_maintenance_plan(current_mileage: int) -> str:
     return "\n".join(lines)
 
 
+def _append_checklist_row(
+    service_date: str,
+    servicer: str,
+    mileage: int,
+    description: str,
+    interval_miles: int | None,
+    next_due_mileage: int | None,
+) -> None:
+    """Append a row to the canonical maintenance checklist CSV (source of truth for seed_db.py)."""
+    with open(CHECKLIST_CSV, "rb") as f:
+        f.seek(-1, 2)
+        ends_with_newline = f.read(1) == b"\n"
+
+    with open(CHECKLIST_CSV, "a", newline="") as f:
+        if not ends_with_newline:
+            f.write("\n")
+        csv.writer(f, lineterminator="\n").writerow([
+            service_date,
+            servicer,
+            mileage,
+            description,
+            "" if interval_miles is None else interval_miles,
+            "" if next_due_mileage is None else next_due_mileage,
+        ])
+
+
 def log_service(
     service_date: str,
     mileage: int,
@@ -125,6 +157,13 @@ def log_service(
                     )
                     break
 
+        # Append to the canonical CSV before committing: if the file write fails,
+        # the exception aborts the transaction so the DB and CSV stay in sync.
+        _append_checklist_row(service_date, servicer, mileage, description, interval_miles, next_due_mileage)
+
         conn.commit()
 
-    return f"Logged service event #{event_id}: {description} at {mileage:,} mi on {service_date}."
+    return (
+        f"Logged service event #{event_id}: {description} at {mileage:,} mi on {service_date}. "
+        f"Appended to maintenance-checklist.csv."
+    )

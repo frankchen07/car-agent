@@ -275,7 +275,7 @@ python run_pipeline.py --config config/wrx.yaml
 | `ask_manual` | Semantic search over embedded manual chunks — returns top-5 passages with scores |
 | `get_service_history` | Query service events by date/mileage; optional keyword filter |
 | `get_maintenance_plan` | Overdue and upcoming items relative to current mileage |
-| `log_service` | Insert a service event; auto-updates related maintenance rule's due mileage |
+| `log_service` | Insert a service event, append it to the canonical maintenance checklist CSV, and auto-update related maintenance rule's due mileage |
 | `get_issues` | Retrieve logged issues; filter by resolved/open/all |
 | `log_issue` | Log a new problem, symptom, or DTC code with severity |
 
