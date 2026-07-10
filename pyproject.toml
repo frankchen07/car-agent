@@ -41,3 +41,7 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["src*"]
+
+[project.scripts]
+wrx-bot = "src.bot:main"
+wrx-cli = "src.cli:main"
