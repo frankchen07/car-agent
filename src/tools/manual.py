@@ -4,6 +4,16 @@ import os
 from pathlib import Path
 
 import numpy as np
+from sentence_transformers import SentenceTransformer
+
+_model: SentenceTransformer | None = None
+
+
+def _get_model() -> SentenceTransformer:
+    global _model
+    if _model is None:
+        _model = SentenceTransformer("all-MiniLM-L6-v2")
+    return _model
 
 
 def ask_manual(query: str, top_k: int = 5) -> str:
@@ -19,8 +29,7 @@ def ask_manual(query: str, top_k: int = 5) -> str:
     if not records_with_embeddings:
         return "No embedded chunks found in knowledge base."
 
-    from sentence_transformers import SentenceTransformer
-    model = SentenceTransformer("all-MiniLM-L6-v2")
+    model = _get_model()
     query_embedding = model.encode(query, normalize_embeddings=True)
 
     embeddings = np.array([r["embedding"] for r in records_with_embeddings], dtype=np.float32)

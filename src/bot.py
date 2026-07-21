@@ -1,5 +1,6 @@
 """Telegram bot interface for the WRX mechanic advisor."""
 import asyncio
+import base64
 import logging
 import os
 
@@ -83,18 +84,41 @@ async def cmd_reset(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Conversation history cleared.")
 
 
+async def _typing_loop(bot, chat_id: int, stop: asyncio.Event) -> None:
+    while not stop.is_set():
+        await bot.send_chat_action(chat_id=chat_id, action="typing")
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=4)
+        except asyncio.TimeoutError:
+            pass
+
+
 async def on_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _is_allowed(update):
         return
     chat_id = update.effective_chat.id
-    text = update.message.text or ""
-    if not text.strip():
-        return
 
-    await ctx.bot.send_chat_action(chat_id=chat_id, action="typing")
+    if update.message.photo:
+        text = update.message.caption or ""
+        photo = update.message.photo[-1]
+        file = await photo.get_file()
+        photo_bytes = await file.download_as_bytearray()
+        b64 = base64.b64encode(photo_bytes).decode()
+        content: list = [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}}]
+        if text.strip():
+            content.append({"type": "text", "text": text})
+        human_msg = HumanMessage(content=content)
+    else:
+        text = update.message.text or ""
+        if not text.strip():
+            return
+        human_msg = HumanMessage(content=text)
+
+    stop = asyncio.Event()
+    typing_task = asyncio.create_task(_typing_loop(ctx.bot, chat_id, stop))
 
     history = _histories.setdefault(chat_id, [])
-    history.append(HumanMessage(content=text))
+    history.append(human_msg)
     mileage = _mileages.get(chat_id, _DEFAULT_MILEAGE)
 
     try:
@@ -106,6 +130,9 @@ async def on_message(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         log.exception("Agent error")
         await update.message.reply_text(f"Something went wrong: {exc}")
         return
+    finally:
+        stop.set()
+        await typing_task
 
     _histories[chat_id] = result["messages"]
 
@@ -138,7 +165,7 @@ def main() -> None:
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("mileage", cmd_mileage))
     app.add_handler(CommandHandler("reset", cmd_reset))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_message))
+    app.add_handler(MessageHandler((filters.TEXT | filters.PHOTO) & ~filters.COMMAND, on_message))
 
     log.info("WRX bot polling...")
     app.run_polling()
