@@ -4,6 +4,33 @@ AI mechanic advisor for Frank's 2003 Subaru Impreza WRX. Knows the car's full se
 
 ---
 
+## Cheat sheet
+
+Local only — no prod deployment (no Dockerfile or Railway service).
+
+```bash
+docker compose up -d        # local Postgres on :5433
+source .venv/bin/activate
+wrx-bot                     # Telegram bot (= python -m src.bot)
+wrx-cli                     # terminal CLI (= python -m src.cli; --mileage defaults to 153000)
+```
+
+Shortcut: the `wrx` alias in `~/.zshrc` does the `cd`, Postgres, venv, and
+`wrx-bot` in one go.
+
+Stop: `Ctrl+C`, then `deactivate` and `docker compose down` (data stays in the
+Docker volume; `down -v` wipes it).
+
+Knowledge pipeline — `--config` is required here; the script's default points
+at ramit-agent's config, which doesn't exist in this repo:
+
+```bash
+source .venv/bin/activate
+cd knowledge && python run_pipeline.py --config config/wrx.yaml
+```
+
+---
+
 ## What it does
 
 - **Manual search** — semantic search over the WRX shop manuals and service docs (PDFs → embedded chunks)
